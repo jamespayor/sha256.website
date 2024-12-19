@@ -1,0 +1,354 @@
+<html>
+  <head>
+    <title>SHA-256</title>
+    <meta charset="utf-8">
+    <meta name="description" content="Calculate the SHA-256 or SHA-512 hash of some text">
+    <meta name="keywords" content="SHA-256, SHA-512, cryptographic, hash, sha, sha256, sha512">
+    <link rel="author" href="https://payor.io" />
+    <link rel="canonical" href="https://sha256.website" />
+    <style>
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .contentContainer {
+        display: flex;
+        width: min(80%, 48rem);
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+        max-width: 100%;
+        flex-direction: column;
+        align-items: center;
+      }
+      h1 {
+        margin: 0;
+      }
+      .headerContainer {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        gap: 0.25rem;
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+      }
+      .outsideLinksContainer {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: larger;
+      }
+      .textContainer {
+        display: flex;
+        flex-direction: row;
+        gap: 0.25rem;
+        align-items: start;
+        width: 100%;
+      }
+      .modeContainer {
+        padding: 0.75rem;
+      }
+      .hashContainer {
+        display: flex;
+        flex-direction: row;
+        gap: 0.25rem;
+        align-items: center;
+        width: fit-content;
+        max-width: 100%;
+      }
+      .linkContainer {
+        display: flex;
+        flex-direction: row;
+        gap: 0.25rem;
+        align-items: center;
+        width: min-content;
+        max-width: 100%;
+      }
+      .buttonsContainer {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        align-items: center;
+        width: 1.5rem;
+      }
+      .copyButton {
+        content: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="rgb(80,80,80)"><path opacity="0.4" d="M15.5 13.15h-2.17c-1.78 0-3.23-1.44-3.23-3.23V7.75c0-.41-.33-.75-.75-.75H6.18C3.87 7 2 8.5 2 11.18v6.64C2 20.5 3.87 22 6.18 22h5.89c2.31 0 4.18-1.5 4.18-4.18V13.9c0-.42-.34-.75-.75-.75Z"/><path d="M17.82 2H11.93C9.67 2 7.84 3.44 7.76 6.01c.06 0 .11-.01.17-.01h5.89C16.13 6 18 7.5 18 10.18V16.83c0 .06-.01.11-.01.16 2.23-.07 4.01-1.55 4.01-4.16V6.18C22 3.5 20.13 2 17.82 2Z"/><path d="M11.98 7.15c-.31-.31-.84-.1-.84.33v2.62c0 1.1.93 2 2.07 2 .71.01 1.7.01 2.55.01.43 0 .65-.5.35-.8-1.09-1.09-3.03-3.04-4.13-4.16Z"/></svg>');
+        width: 1.5rem;
+        cursor: pointer;
+        user-select: none;
+      }
+      .copyButton.copied {
+        background-color: rgba(80,200,80,0.2);
+      }
+      .copyButton:hover:not(.copied) {
+        background-color: rgba(80,80,200,0.1);
+      }
+      /* .copyButton:hover:not(.copied):after {
+        content: attr(data-title);
+      } */
+      /* .copyButton:hover:after {
+        display: block;
+      } */
+      #link {
+        white-space: nowrap;
+        overflow: auto;
+      }
+      #text-input {
+        width: 100%;
+        resize: vertical;
+      }
+      #hash-output {
+        font-family: monospace;
+        max-width: 100%;
+      }
+      #hash-output.sha256 {
+        width: 40em;
+      }
+      #hash-output.sha512 {
+        width: 80em;
+      }
+    </style>
+    <script>
+      var currentlyCopied = null;
+      function copyButtonFor(kind) {
+        if (kind === 'text') {
+          return copyTextButton;
+        }
+        if (kind === 'hash') {
+          return copyHashButton;
+        }
+        if (kind === 'link') {
+          return copyLinkButton;
+        }
+        return null;
+      }
+      function setCopied(next) {
+        if (next !== currentlyCopied && currentlyCopied !== null) {
+          var btn = copyButtonFor(currentlyCopied);
+          if (btn === null) {
+            console.warn('null copy button for:', currentlyCopied);
+          } else {
+            btn.classList.remove('copied');
+          }
+        }
+        currentlyCopied = next;
+        if (next !== null) {
+          var btn = copyButtonFor(next);
+          if (btn === null) {
+            console.warn('null copy button for:', next);
+          } else {
+            btn.classList.add('copied');
+          }
+        }
+      }
+
+      function copyToClipboard(value) {
+        navigator.clipboard.writeText(value);
+      }
+      function copyText() {
+        copyToClipboard(inputElement.value);
+        setCopied('text');
+      }
+      function copyHash() {
+        copyToClipboard(outputElement.value);
+        setCopied('hash');
+      }
+      function copyLink() {
+        var paramsString = getParamsString();
+        copyToClipboard(paramsString.length > 0 ? 'https://sha256.website/#' + getParamsString() : 'https://sha256.website/');
+        setCopied('link');
+      }
+
+      var mode = 'SHA-256';
+      function onModeChange() {
+        var newMode;
+        if (modeElement.value === 'SHA-512') {
+          newMode = 'SHA-512';
+        } else {
+          newMode = 'SHA-256';
+        }
+        var params = parseHashParams();
+        if (params && params.get("mode") !== newMode) {
+          window.location.hash = "";
+        }
+        performModeUpdate(newMode);
+      }
+      function performModeUpdate(newMode) {
+        if (mode !== newMode) {
+          mode = newMode;
+          outputElement.className = mode === 'SHA-256' ? 'sha256' : 'sha512';
+          updateLinkHref();
+          startHashUpdate();
+        }
+      }
+
+      function parseHashParams() {
+        var hash = window.location.hash;
+        if (hash.length <= 1) {
+          return null;
+        }
+        try {
+          return new URLSearchParams(hash.substring(1));
+        } catch (e) {
+          console.warn("error parsing hash params", e);
+          return null;
+        }
+      }
+      function getParamsString() {
+        var params = [];
+        if (mode !== "SHA-256") {
+          params.push(["mode", "sha-512"]);
+        }
+        var text = inputElement.value;
+        if (text.length > 0) {
+          params.push(["text", inputElement.value]);
+        }
+        return new URLSearchParams(params).toString();
+      }
+      function updateLinkHref() {
+        var paramsString = getParamsString();
+        linkAnchor.href = "#" + paramsString;
+      }
+
+      var updatingHash = false;
+      var hashNeedsUpdate = false;
+      function onInputChange() {
+        var params = parseHashParams();
+        if (params && params.get("text") !== inputElement.value) {
+          window.location.hash = "";
+        }
+        updateLinkHref();
+        startHashUpdate();
+      }
+      function startHashUpdate() {
+        setCopied(null);
+        if (!updatingHash) {
+          recalculateHash();
+        } else {
+          hashNeedsUpdate = true;
+        }
+      }
+      var byteHex = [];
+      for (var i = 0; i < 256; ++i) {
+        byteHex.push(i.toString(16).padStart(2, "0"));
+      }
+      function handleHashUpdate(hash) {
+        hash = new Uint8Array(hash);
+        var result = [];
+        for (var i = 0; i < hash.length; ++i) {
+          result.push(byteHex[hash[i]]);
+        }
+        outputElement.value = result.join('');
+        if (hashNeedsUpdate) {
+          hashNeedsUpdate = false;
+          recalculateHash();
+        } else {
+          updatingHash = false;
+        }
+      }
+      var encoder = new TextEncoder();
+      function recalculateHash() {
+        updatingHash = true;
+        var buffer = encoder.encode(inputElement.value);
+        crypto.subtle.digest(mode, buffer).then(handleHashUpdate);
+      }
+
+      function updateFromURL(initial) {
+        var parsedHash = parseHashParams();
+        var mode = parsedHash && parsedHash.get('mode');
+        var text = parsedHash && parsedHash.get('text');
+        var modeUpdated = false;
+        var textUpdated = false;
+        if (mode !== null) {
+          mode = mode.toUpperCase();
+          if (mode === 'SHA-256' || mode === 'SHA-512') {
+            if (modeElement.value !== mode) {
+              modeUpdated = true;
+              modeElement.value = mode;
+            }
+          }
+        }
+        if (text !== null) {
+          if (inputElement.value !== text) {
+            textUpdated = true;
+            inputElement.value = text;
+          }
+        }
+        if (modeUpdated || textUpdated) {
+          setCopied(null);
+        }
+        if (!initial) {
+          if (modeUpdated) {
+            performModeUpdate();
+          } else if (textUpdated) {
+            startHashUpdate();
+          }
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div class="contentContainer">
+      <div class="headerContainer">
+        <h1>sha256.website</h1>
+        <div class="outsideLinksContainer">
+          <a href="./about.html">About</a>
+        </div>
+      </div>
+      <div class="textContainer">
+        <div class="buttonsContainer"></div>
+        <textarea name="text" id="text-input" rows="4" autofocus style="width: 100%"></textarea>
+        <div class="buttonsContainer">
+          <span id="copy-text-button" class="copyButton" data-title="Copy text">Copy text</span>
+        </div>
+      </div>
+      <div class="modeContainer">
+        <select name="mode" id="hash-mode"><option value="SHA-256">SHA-256</option><option value="SHA-512">SHA-512</option></select>
+      </div>
+      <div class="hashContainer">
+        <div class="buttonsContainer"></div>
+        <input name="hash" id="hash-output" class="sha256" readonly value="e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855">
+        <div class="buttonsContainer">
+          <span id="copy-hash-button" class="copyButton" data-title="Copy hash">Copy hash</span>
+        </div>
+      </div>
+      <div class="linkContainer">
+        <div class="buttonsContainer"></div>
+        <a id="link" href="#">Link</a>
+        <div class="buttonsContainer">
+          <span id="copy-link-button" class="copyButton" data-title="Copy link">Copy link</span>
+        </div>
+      </div>
+    </div>
+    <script>
+      var inputElement = document.getElementById('text-input');
+      var modeElement = document.getElementById('hash-mode');
+      var outputElement = document.getElementById('hash-output');
+      var linkAnchor = document.getElementById('link');
+
+      window.addEventListener('hashchange', updateFromURL);
+      if (inputElement.value === "") {
+        updateFromURL(true);
+      }
+
+      inputElement.addEventListener('input', onInputChange);
+      modeElement.addEventListener("change", onModeChange);
+
+      var copyTextButton = document.getElementById('copy-text-button');
+      copyTextButton.addEventListener('click', copyText);
+      var copyHashButton = document.getElementById('copy-hash-button');
+      copyHashButton.addEventListener('click', copyHash);
+      var copyLinkButton = document.getElementById('copy-link-button');
+      copyLinkButton.addEventListener('click', copyLink);
+
+      if (mode !== modeElement.value) {
+        onModeChange();
+      }
+      if (inputElement.value !== "") {
+        onInputChange();
+      }
+    </script>
+  </body>
+</html>

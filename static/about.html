@@ -1,0 +1,97 @@
+<html>
+  <head>
+    <title>SHA-256 - About</title>
+    <meta charset="utf-8">
+    <meta name="description" content="Calculate the SHA-256 or SHA-512 hash of some text">
+    <meta name="keywords" content="SHA-256, SHA-512, cryptographic, hash, sha, sha256, sha512">
+    <link rel="author" href="https://payor.io" />
+    <link rel="canonical" href="https://sha256.website/about" />
+    <style>
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .contentContainer {
+        display: flex;
+        width: min(80%, 36rem);
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+        max-width: 100%;
+        flex-direction: column;
+        align-items: center;
+      }
+      h1 {
+        margin: 0;
+      }
+      p {
+        margin: 0;
+      }
+      .headerContainer {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        gap: 0.25rem;
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+      }
+      .textContainer {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        align-items: start;
+        width: 100%;
+      }
+      .modeContainer {
+        padding: 0.75rem;
+      }
+      .hashContainer {
+        display: flex;
+        flex-direction: row;
+        gap: 0.25rem;
+        align-items: center;
+        width: fit-content;
+        max-width: 100%;
+      }
+      .linkContainer {
+        display: flex;
+        flex-direction: row;
+        gap: 0.25rem;
+        align-items: center;
+        width: min-content;
+        max-width: 100%;
+      }
+      .buttonsContainer {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        align-items: center;
+        width: 1.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="contentContainer">
+      <div class="headerContainer">
+        <h1><a href="./index.html">sha256.website</a> - About</h1>
+      </div>
+      <div class="textContainer">
+        <p>
+          This website is a tool for computing and verifying hashes, made by <a href="https://payor.io" target="_blank">James Payor</a>.
+          There are <a href="https://emn178.github.io/online-tools/sha256.html" target="_blank">other sites</a>, but I wanted something simple and easy to find.
+        </p>
+        <p>
+          <a href="https://en.wikipedia.org/wiki/SHA-2" target="_blank">SHA-256</a> (and SHA-512) are <a href="https://en.wikipedia.org/wiki/Cryptographic_hash_function">cryptographic hash functions</a>.
+          They can take in a long stream of data and turn it into a short sequence of bytes, called the "hash".
+        </p>
+        <p>
+          These hashes are designed to be <a href="https://en.wikipedia.org/wiki/Pseudorandomness">pseudorandom</a>:
+          without access to the input data, we can't tell them apart from random numbers.
+          So they're useful for proving you know something without revealing it.
+        </p>
+      </div>
+
+    </div>
+  </body>
+</html>
