@@ -64,7 +64,7 @@
         flex-direction: row;
         gap: 0.25rem;
         align-items: center;
-        width: min-content;
+        width: fit-content;
         max-width: 100%;
       }
       .buttonsContainer {
@@ -209,8 +209,7 @@
         return new URLSearchParams(params).toString();
       }
       function updateLinkHref() {
-        var paramsString = getParamsString();
-        linkAnchor.href = "#" + paramsString;
+        linkAnchor.href = "#" + getParamsString();
       }
 
       var updatingHash = false;
